@@ -84,7 +84,7 @@ type alias Experiment ui ts msg =
         , debt : Int
         , user : List msg
         , correct : List (List msg)
-        , score : Score
+        , score : Score msg
         }
 
 
@@ -115,10 +115,10 @@ type Msg a
     | Init a
 
 
-type Score
+type Score msg
     = NotSubmitted
     | WaitingConfirmation
-    | Scored Float
+    | Scored ( Float, List msg )
 
 
 sandbox :
@@ -323,13 +323,13 @@ update updater isEnabled next msgType analyticsPort wrapperMessage exp =
                             ( Tuple.first minED, Tuple.second minED |> List.length )
 
                         score =
-                            Debug.log "Score" ((toFloat (n - d) / toFloat n) * 100 |> Scored)
+                            Debug.log "Score" (Scored ( (toFloat (n - d) / toFloat n) * 100, Tuple.second minED ))
 
                         present =
                             exp.present
 
                         newExp =
-                            { present | score = score }
+                            { present | score = score, correct = correctRuns }
                     in
                     ( U.new newExp exp, log wrapperMessage newExp )
 
@@ -448,7 +448,7 @@ viewPrimaryButtons btns =
             btns
 
 
-viewScore : Score -> Html (Msg msg)
+viewScore : Score msg -> Html (Msg msg)
 viewScore score =
     case score of
         NotSubmitted ->
@@ -476,7 +476,7 @@ viewScore score =
                     ]
                 ]
 
-        Scored s ->
+        Scored ( s, c ) ->
             Html.div
                 [ HA.class "modal-bg"
                 ]
@@ -485,11 +485,10 @@ viewScore score =
                     [ Html.div
                         [ HA.class "modal-content" ]
                         [ Html.div [ HA.class "modal-header" ]
-                            [ Html.h3 [ HA.style "margin" "0px" ] [ Html.text "Driving Test Score" ]
-                            , Html.button [ HA.style "cursor" "pointer" ] [ Html.text (String.fromChar (Char.fromCode 10005)) ]
+                            [ Html.h3 [ HA.style "margin" "0px" ] [ Html.text "Driving Test Status" ]
                             ]
                         , Html.div [ HA.class "modal-body" ]
-                            [ Html.text ("Score : " ++ String.fromFloat s) ]
+                            [ Html.text "Submitted for Grading" ]
                         ]
                     ]
                 ]
