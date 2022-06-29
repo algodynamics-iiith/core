@@ -302,9 +302,9 @@ update updater isEnabled next msgType analyticsPort wrapperMessage exp =
                             exp.present
 
                         newExp =
-                            { present | score = NotSubmitted }
+                            U.undo exp
                     in
-                    ( U.new newExp exp, log wrapperMessage newExp )
+                    ( { newExp | future = [] }, log wrapperMessage newExp.present )
 
                 ConfirmSubmit ->
                     let
